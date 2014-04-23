@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="BandRich Web Team">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Google Map sample page</title>
+    </head>
+        <style type="text/css">
+            
+            #map_canvas { 
+                height: 500px;
+                width:800px;
+            }
+
+        </style>
+    <body>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+
+        <div id="map_canvas"></div>
+
+
+        <script src="js/vendor/jquery-1.11.0.min.js?v=2014041601"></script>
+        <script>
+
+
+            var initialize = function () {
+                //定義經緯度位置: bandrich
+                var latlng = new google.maps.LatLng(25.0798952, 121.5719747);
+                
+                //設定地圖參數
+                var mapOptions = {
+                    zoom: 16,                                 //初始放大倍數
+                    center: latlng,                           //中心點所在位置
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, //正常2D道路模式
+                    //disableDefaultUI: true                  //停用所有控制項
+                };
+                
+                //在指定DOM元素中嵌入地圖
+                var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+                
+                //Add Marker
+                var marker = new google.maps.Marker({
+                    position: latlng,      //經緯度
+                    title: "BandRich",     //顯示文字
+                    map: map               //指定要放置的地圖對象
+                });
+            }
+
+
+            $(function(){
+                initialize();
+            });
+
+    </script>
+    </body>
+</html>

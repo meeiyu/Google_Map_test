@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="BandRich Web Team">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Google Map sample page</title>
+    </head>
+        <style type="text/css">
+            
+            #map_canvas { 
+                height: 500px;
+                width:800px;
+            }
+
+        </style>
+    <body>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+        Address:<input id="address_val" name="address_val" type="text"></div>
+        <div id="SearchLatLng">position:</div>
+        <br>
+        <div id="map_canvas"></div>
+        <button id="start">start</button>
+
+        <script src="js/vendor/jquery-1.11.0.min.js?v=2014041601"></script>
+        <script>
+            var map;
+            var marker;
+            var longitude = 25.0798952;
+            var latitude  = 121.5719747;  
+  
+            var initialize = function () {
+                //定義初始化的經緯度位置: BandRich
+                // var longitude = 25.0798952;
+                // var latitude  = 121.5719747;  
+                var bandrich  = new google.maps.LatLng(longitude, latitude);   
+                var forg_image = "7.png";
+
+                //設定地圖的參數
+                var mapOptions = {
+                    zoom: 16,                                 //初始放大倍數
+                    center: bandrich,                         //中心點所在位置
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, //正常2D道路模式
+                    //disableDefaultUI: true                  //停用所有控制項 
+                };
+
+
+                //在指定DOM元素中嵌入地圖
+                map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+
+                marker = new google.maps.Marker({
+                    draggable: true,        //讓marker可以拖拉  
+                    position: bandrich,    //經緯度
+                    title: "BandRich",     //標記點Marker在mouseover時顯示的文字。
+                    map: map,              //要顯示標記點Marker的地圖物件。
+                    icon: forg_image       //指定要改的圖片
+                });
+
+                //Events                
+                //mouseup
+                    google.maps.event.addListener(marker, 'mouseup', function() {
+                        LatLng = marker.getPosition();
+                        console.log("Current position: Lat------:" + LatLng.lat() + "----------Lng-------：" + LatLng.lng());
+                    });
+            }//End initialize function
+
+
+            var Get_Address_Marker = function () {
+                var address = $("#address_val").val();
+                var geocoder = new google.maps.Geocoder();
+
+                geocoder.geocode({
+                    'address':address
+                },function (results,status) {
+                    if(status==google.maps.GeocoderStatus.OK) {
+                        //console.log(results[0].geometry.location);
+                        LatLng = results[0].geometry.location;
+                        console.log(LatLng);
+                        map.setCenter(LatLng);           //將地圖中心定位到查詢結果
+                        marker.setPosition(LatLng);      //將標記點定位到查詢結果
+                        marker.setTitle(address);        //重新設定標記點的title
+                        $("#SearchLatLng").html("Lat------" + LatLng.lat() + "<BR>" + "Lng-------" + LatLng.lng());
+                    }
+                })
+            }//End Get_Address_Marker function
+
+ 
+            $(document).ready(function() { 
+                initialize();
+
+                //綁定地址輸入框的keyup事件以即時重新定位
+                $("#address_val").bind("keyup",function(){ 
+                    Get_Address_Marker();
+                });
+
+
+
+                $("#start").click(function(evt) {
+
+                    setInterval(function() {
+                        
+
+                        console.log(parseInt(latitude));
+
+                        longitude = longitude + 0.00001;
+                        latitude  = latitude - 0.00001;  
+                        var newLatLng = new google.maps.LatLng(longitude, latitude);
+
+                        map.setCenter(newLatLng);           //將地圖中心定位到查詢結果
+                        marker.setPosition(newLatLng);      //將標記點定位到查詢結果
+                        $("#SearchLatLng").html("Lat------" + newLatLng.lat() + "<BR>" + "Lng-------" + newLatLng.lng());                    
+                        
+                        console.log("----------------------"+longitude);
+                        console.log("----------------------"+latitude);
+
+                    },3000); // every 2 second
+
+                });
+            
+            });//End ready function
+        </script>
+    </body>
+</html>
