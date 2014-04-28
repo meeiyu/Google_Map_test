@@ -16,6 +16,11 @@
                 background-color: #454545;
             }
 
+            #content {
+                width: 150px;
+                height: 80px;
+            }
+
             #address_info,
             #Search_address{
                 color: #FFFFFF;
@@ -85,21 +90,24 @@
             <div id="map_container">
                 <div id="map_canvas"></div>
             </div>
-            <button id="start" class="button-success pure-button">start</button>
+            <!-- <button id="start" class="button-success pure-button">start</button> -->
 
 
         <script>
             var map;
             var marker;
-            var longitude = 25.0798952;
-            var latitude  = 121.5719747;  
+            var longitude  = 25.079722717882092;
+            var latitude   = 121.57182583739973; 
+            var Path_Array = []; 
+            var car_image  = "car.png";
+            var way_point  = "waypoint.png";
   
             var initialize = function () {
                 //定義初始化的經緯度位置: BandRich
                 // var longitude = 25.0798952;
                 // var latitude  = 121.5719747;  
                 var bandrich         = new google.maps.LatLng(longitude, latitude);   
-                var forg_image       = "7.png";
+
                 var info_box_content = '<div id="content">Hello,Mandy.<br><button id="start_button" class="button-success pure-button">start</button><button id="stop_button" class="button-error pure-button">stop</button></div>';
 
                 //設定地圖的參數
@@ -107,7 +115,8 @@
                     zoom: 16,                                 //初始放大倍數
                     center: bandrich,                         //中心點所在位置
                     mapTypeId: google.maps.MapTypeId.ROADMAP, //正常2D道路模式
-                    //disableDefaultUI: true                  //停用所有控制項 
+                    //disableDefaultUI: true                  //停用所有控制項
+                    streetViewControl: false 
                 };
 
 
@@ -120,8 +129,9 @@
                     position: bandrich,                       //經緯度
                     title: "BandRich",                        //標記點Marker在mouseover時顯示的文字。
                     map: map,                                 //要顯示標記點Marker的地圖物件。
-                    icon: forg_image,                         //指定要改的圖片
-                    animation: google.maps.Animation.DROP     //讓Marker從天而降
+                    icon: car_image,                         //指定要改的圖片                       
+                    animation: google.maps.Animation.DROP,     //讓Marker從天而降
+                    rotation: 180
                 });
 
                 var infowindow = new google.maps.InfoWindow({
@@ -163,27 +173,55 @@
             }//End Get_Address_Marker function
 
             var Reverse_Geocoding = function (Current_Lat,Current_Lng){
+                var lat           = parseFloat(Current_Lat);
+                var lng           = parseFloat(Current_Lng);
+                var latlng        = new google.maps.LatLng(lat, lng);
+                var geocoder      = new google.maps.Geocoder();
+                
 
-                console.log("----------------------" + Current_Lat);
-                console.log("----------------------" + Current_Lng);
+                var start_point  = Path_Array[0];
+                var end_ponit    = Path_Array[Path_Array.length - 1];
 
+                
 
-                var lat    = parseFloat(Current_Lat);
-                var lng    = parseFloat(Current_Lng);
-                var latlng = new google.maps.LatLng(lat, lng);
-                var geocoder = new google.maps.Geocoder();
+                //畫路徑線
+                var google_polyline = new google.maps.Polyline({
+                                    path: Path_Array,
+                                    geodesic: true,
+                                    strokeColor: 'red',   //線段的顏色(水藍色)
+                                    strokeOpacity: 0.3,       //不透明度
+                                    strokeWeight: 6           //線的粗細
+                });
+
+                google_polyline.setMap(map);
 
 
                 geocoder.geocode({'latLng': latlng}, function(results, status) {
-                    if (status == google.maps.GeocoderStatus.OK) {           //"OK" 表示沒有發生任何錯誤；地址的剖析已成功完成且至少傳回一個地理編碼。
+                    if (status == google.maps.GeocoderStatus.OK) {                                    //"OK" 表示沒有發生任何錯誤；地址的剖析已成功完成且至少傳回一個地理編碼。
                         console.log(results);
                         $("#Search_address").html("Address------" + results[0].formatted_address);    //這個陣列0~7，依序回傳更完整的地址資訊
-                        //$("#SearchLatLng").html("Address------" + results[1].formatted_address);
+                        //console.log(results[0].geometry.location);
+                        Path_Array.push(results[0].geometry.location); //save all path to array for draw polyline
+                        
+                        var a = results[0].geometry.location.A;
+                        var k = results[0].geometry.location.k;
+                        Set_marker(k,a, way_point);
                     }
                 });
+
+
             }//End Reverse_Geocoding function
 
 
+
+            var Set_marker = function (latitude, longitude, icon){
+                var latlng         = new google.maps.LatLng(latitude, longitude);
+                var marker_Options = new google.maps.Marker({  
+                    position: latlng,                        //經緯度
+                    map: map,                                //要顯示標記點Marker的地圖物件。
+                    icon: icon                               //指定要顯示的圖片                       
+                });
+            }//End Set_marker function.
 
  
             $(document).ready(function() { 
@@ -199,8 +237,13 @@
                     
                     set_move_marker = setInterval(function() {
                         
-                        longitude = longitude + 0.0001;
-                        latitude  = latitude - 0.0001;  
+                        // longitude = longitude + 0.0001;
+                        // latitude  = latitude - 0.0001; 
+
+
+                        longitude = longitude + 0.001;
+                        latitude  = latitude - 0.001;  
+
                         var newLatLng = new google.maps.LatLng(longitude, latitude);
 
                         map.setCenter(newLatLng);           //將地圖中心定位到查詢結果
@@ -211,10 +254,6 @@
                         var Current_Lng = newLatLng.lng();
 
                         Reverse_Geocoding(Current_Lat,Current_Lng);
-
-
-
-
 
                     },2000); // every 2 second
 
