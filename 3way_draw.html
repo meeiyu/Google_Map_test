@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="BandRich Web Team">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <link rel="stylesheet" type="text/css" href="css/pure-min.css">
+        <title>Google Map sample page</title>
+    </head>
+        <style type="text/css">
+            html, body {
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                background-color: #454545;
+            }
+
+            #content {
+                width: 150px;
+                height: 80px;
+            }
+
+            #address_info,
+            #Search_address{
+                color: #FFFFFF;
+            }
+
+            #SearchLatLng {
+                width: 300px;
+                height: 40px;
+                color: #FFFFFF;
+            }
+
+            #map_container {
+                margin: 0 0 0 10px;
+                position: relative;
+                border-radius: 5px;
+                background-color: #FFFFFF;
+                height: 490px;
+                width: 730px;
+            }
+
+            #map_canvas {
+                position: absolute;
+                margin: 20px;
+                height: 450px;
+                width:690px;
+            }
+
+            /**************************************************
+
+                Pure css style
+
+            ***************************************************/
+                .button-success,
+                .button-error,
+                .button-warning,
+                .button-secondary {
+                    color: white;
+                    border-radius: 4px;
+                    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+                }
+
+                .button-success {
+                    margin: 10px 10px 10px 10px; 
+                    background: rgb(28, 184, 65); /* this is a green */
+                }
+
+                .button-error {
+                    margin: 0 5px 10px 5px; 
+                    background: rgb(202, 60, 60); /* this is a maroon */
+                }
+
+
+            /*  div, span, li, ul, img, h1, h2, h3, h4 {
+                border: 1px solid #000000;
+            }*/
+            
+
+        </style>
+    <body>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+        <script src="js/vendor/jquery-1.11.0.min.js?v=2014041601"></script>
+
+            <div id="address_info">Address<input id="address_val" name="address_val" type="text"></div>
+            <div id="SearchLatLng"></div>
+            <div id="Search_address"></div>
+            <br>
+            <div id="map_container">
+                <div id="map_canvas"></div>
+            </div>
+            <button id="start_1" class="button-success pure-button">start1</button>
+            <button id="start_2" class="button-success pure-button">start2</button>
+            <button id="start_3" class="button-success pure-button">start3</button>
+            
+            <button id="stop" class="button-error pure-button">stop</button>
+        <script>
+            var map;
+            var marker;
+            var count_array_path = 0;       //用來計算目前已經讀取到陣列的第幾層  
+            var Path_Array_1 = [
+                                new google.maps.LatLng(40.7281277, -74.00722680000001),
+                                new google.maps.LatLng(40.7283361047594, -74.00719193128282),
+                                new google.maps.LatLng(40.728534447993255, -74.00715974477464),
+                                new google.maps.LatLng(40.728725604318655, -74.00712621716195),
+                                new google.maps.LatLng(40.72883627351919, -74.00710744169885),
+                                new google.maps.LatLng(40.7290662349058, -74.00707257298166),
+                                new google.maps.LatLng(40.729254515199415, -74.00704306868249),
+                                new google.maps.LatLng(40.72938530501349, -74.00702161101037),
+                                new google.maps.LatLng(40.72947872615184, -74.00700685886079),
+                                new google.maps.LatLng(40.72946866542017, -74.0068821361416),
+                                new google.maps.LatLng(40.72945860468696,-74.00674266127282),
+                                new google.maps.LatLng(40.72944566945633, -74.00660050419503),
+                                new google.maps.LatLng(40.729429859726594, -74.0064328661316), 
+                                new google.maps.LatLng(40.72941979898753, -74.00632825998002), 
+                                new google.maps.LatLng(40.729408300998166, -74.00618610290223),
+                                new google.maps.LatLng(40.72939105401039, -74.00600639489824),
+                                new google.maps.LatLng(40.72937524426767, -74.00584680346185),
+                                new google.maps.LatLng(40.72936374627063, -74.00570062307054),
+                                new google.maps.LatLng(40.72936087177103, -74.00552896169359),
+                                new google.maps.LatLng(40.7293551227715, -74.00541094449693),
+                                new google.maps.LatLng(40.729370932519004, -74.00526342300111),         
+                                new google.maps.LatLng(40.72937524426767, -74.00521111992532),                              
+                                new google.maps.LatLng(40.729263138711566, -74.00521782544786) 
+                                ];
+
+            var Path_Array_2 = [
+                                new google.maps.LatLng(40.72800783732831, -74.0022983726692),
+                                new google.maps.LatLng(40.7279072277193, -74.00210257141111),
+                                new google.maps.LatLng(40.727654265744576, -74.00160099832533),
+                                new google.maps.LatLng(40.7274559198873, -74.00119062034605),
+                                new google.maps.LatLng(40.72722595293589, -74.00071855155943),
+                                new google.maps.LatLng(40.727027605802014, -74.00032158462523),
+                                new google.maps.LatLng(40.72686087876841, -73.99997289745329),
+                                new google.maps.LatLng(40.726702775161044, -73.99965371458052),
+                                new google.maps.LatLng(40.726521674203774, -73.99931307403563),
+                                new google.maps.LatLng(40.726300327920086, -73.99883564083098),
+                                new google.maps.LatLng(40.726090479464794, -73.99843599168776),
+                                new google.maps.LatLng(40.7258806303478, -73.99800147382734),
+                                new google.maps.LatLng(40.72571964975478, -73.99767156211851),
+                                new google.maps.LatLng(40.725837510584306, -73.99758841363905),
+                                new google.maps.LatLng(40.726032986621846, -73.99741943447111),
+                                new google.maps.LatLng(40.72628308012679, -73.9972021755409),
+                                new google.maps.LatLng(40.72656191890352, -73.99695541231154),
+                                new google.maps.LatLng(40.72674589436392, -73.99680252639769),
+                                new google.maps.LatLng(40.72691837089617, -73.9966603693199),
+                                new google.maps.LatLng(40.72686087876841, -73.99652625886915),
+                                new google.maps.LatLng(40.72672864668613, -73.9962473091316),
+                                new google.maps.LatLng(40.72656766814436, -73.99591471521376),
+                                new google.maps.LatLng(40.726369319048516, -73.99553920595167),
+                                new google.maps.LatLng(40.72621408890895, -73.99521465866087),
+                                new google.maps.LatLng(40.72599561624728, -73.99483378498076),
+                                new google.maps.LatLng(40.72591800078695, -73.99467285243986),
+                                new google.maps.LatLng(40.72581451336567, -73.99445291130064),
+                                new google.maps.LatLng(40.72574839631782, -73.99422224132536)
+                            ];
+
+            var Path_Array_3 = [
+                               new google.maps.LatLng(40.71776688394933, -74.0001801054878),
+                               new google.maps.LatLng(40.71787056341507, -74.00008354596326),
+                               new google.maps.LatLng(40.717984407348375, -73.99998564533422),
+                               new google.maps.LatLng(40.7180972346259, -73.99989847354124),
+                               new google.maps.LatLng(40.718208028793406, -73.99980593733022),
+                               new google.maps.LatLng(40.71832492152254, -73.99971474222372),
+                               new google.maps.LatLng(40.718455027970975, -73.99960611275861),
+                               new google.maps.LatLng(40.71859428224733, -73.99949211887548),
+                               new google.maps.LatLng(40.71866136814511, -73.99943445138166),
+                               new google.maps.LatLng(40.71877419427528, -73.99934727958868),
+                               new google.maps.LatLng(40.71889210245921, -73.9992627900047),
+                               new google.maps.LatLng(40.719007977539945, -73.99916086606214),
+                               new google.maps.LatLng(40.71913706620816, -73.99905760101507),
+                               new google.maps.LatLng(40.71926513818282, -73.998954335968),
+                               new google.maps.LatLng(40.719386094821495, -73.99885509423444),
+                               new google.maps.LatLng(40.71950806767994, -73.9987585347099),
+                               new google.maps.LatLng(40.71963207319024, -73.99866331628988),
+                               new google.maps.LatLng(40.71977437431089, -73.99854798130224),
+                               new google.maps.LatLng(40.71992277372688, -73.9984138708515),
+                               new google.maps.LatLng(40.72015655295777, -73.99820734075735),
+                               new google.maps.LatLng(40.720412692737725, -73.9979820352001),
+                               new google.maps.LatLng(40.720676962906175, -73.99774600080679),
+                               new google.maps.LatLng(40.72081113043632, -73.9976762633724),
+                               new google.maps.LatLng(40.7209513962014, -73.99800617508123),
+                               new google.maps.LatLng(40.7211140228054, -73.99840582422445),
+                               new google.maps.LatLng(40.72125428793224, -73.9987384181423),
+                               new google.maps.LatLng(40.721384388655196, -73.99905760101507),
+                               new google.maps.LatLng(40.72144130764153, -73.99919439367483),
+                               new google.maps.LatLng(40.72156327673407, -73.99947602562139),
+                               new google.maps.LatLng(40.7216852456031, -73.99975229314992),
+                               new google.maps.LatLng(40.72175436119633, -73.99990249685476),
+                               new google.maps.LatLng(40.7218641328734, -74.00012243799398),
+                               new google.maps.LatLng(40.72199626520754, -74.00037993005941),
+                               new google.maps.LatLng(40.72199626520754, -74.00037993005941),
+                               new google.maps.LatLng(40.72215685646049, -74.00068033746908)
+                             ]; 
+
+            var car_image  = "car.png";
+            var way_point  = "waypoint.png";
+            var start_icon = "start_point.png";
+            var end_icon   = "end_point.png";
+            
+            var loadMap = function () {
+                var bandrich   = new google.maps.LatLng(40.7281277, -74.00722680000001);
+
+                //設定地圖的參數
+                var mapOptions = {
+                    zoom: 15,                                 //初始放大倍數
+                    center: bandrich,                         //中心點所在位置
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, //正常2D道路模式
+                    //disableDefaultUI: true                  //停用所有控制項 
+                };
+
+                //在指定DOM元素中嵌入地圖
+                map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+                marker = new google.maps.Marker({
+                    draggable: true,                          //讓marker可以拖拉  
+                    position: bandrich,                       //經緯度
+                    title: "BandRich",                        //標記點Marker在mouseover時顯示的文字。
+                    map: map,                                 //要顯示標記點Marker的地圖物件。
+                    icon: car_image,                          //指定要改的圖片                       
+                    animation: google.maps.Animation.DROP,     //讓Marker從天而降
+                    rotation: 180
+                });
+   
+
+            }//End loadMap function
+
+
+            var Set_marker = function (lng, lat, icon){
+                    var latlng         = new google.maps.LatLng(lng, lat);
+                    var marker_Options = new google.maps.Marker({  
+                        position: latlng,                  //經緯度
+                        map: map,                          //要顯示標記點Marker的地圖物件。
+                        icon: icon,                        //指定要顯示的圖片
+                        streetViewControl: false                        
+                    });
+
+            }//End Set_marker function.
+
+            var draw_polyline = function (path_array){            
+                //畫路徑線
+                var google_polyline = new google.maps.Polyline({
+                                    path: path_array,
+                                    geodesic: true,
+                                    strokeColor: 'red',       //線段的顏色(紅色)
+                                    strokeOpacity: 0.8,    //不透明度
+                                    strokeWeight: 6           //線的粗細
+                });
+
+                google_polyline.setMap(map);
+
+            }//End Reverse_Geocoding function
+
+            var set_start_end = function (Path_name){
+                var start_point_lng  = Path_name[0].A;
+                var start_point_lat  = Path_name[0].k;
+                var end_ponit_lng    = Path_name[Path_name.length - 1].A;
+                var end_ponit_lat    = Path_name[Path_name.length - 1].k;
+
+                Set_marker(start_point_lng,start_point_lat,start_icon);
+                Set_marker(end_ponit_lng,end_ponit_lat,end_icon);
+                
+                marker.setMap(null);
+            }
+
+ 
+            $(document).ready(function() { 
+                
+                loadMap();
+
+                $(document).on( "click", "#start_1", function() {
+                    var start_point_lat  = Path_Array_1[0].k;
+                    var start_point_lng  = Path_Array_1[0].A;
+                    var end_ponit_lat    = Path_Array_1[Path_Array_1.length - 1].k;
+                    var end_ponit_lng    = Path_Array_1[Path_Array_1.length - 1].A;
+
+                    draw_polyline(Path_Array_1);
+
+                    for(var i = 0; i < Path_Array_1.length; i++) {
+                        Set_marker(Path_Array_1[i].k, Path_Array_1[i].A,way_point);
+                    }
+
+                    Set_marker(start_point_lat, start_point_lng, start_icon);
+                    Set_marker(end_ponit_lat, end_ponit_lng, end_icon);
+                    marker.setMap(null);
+                });
+
+                $(document).on( "click", "#start_2", function() {
+                    var start_point_lat  = Path_Array_2[0].k;
+                    var start_point_lng  = Path_Array_2[0].A;
+                    var end_ponit_lat    = Path_Array_2[Path_Array_2.length - 1].k;
+                    var end_ponit_lng    = Path_Array_2[Path_Array_2.length - 1].A;
+
+                    draw_polyline(Path_Array_2);
+
+                    for(var i = 0; i < Path_Array_2.length; i++) {
+                        Set_marker(Path_Array_2[i].k, Path_Array_2[i].A,way_point);
+                    }
+
+                    Set_marker(start_point_lat, start_point_lng, start_icon);
+                    Set_marker(end_ponit_lat, end_ponit_lng, end_icon);
+                    marker.setMap(null);
+                });
+
+                $(document).on( "click", "#start_3", function() {
+                    var start_point_lat  = Path_Array_3[0].k;
+                    var start_point_lng  = Path_Array_3[0].A;
+                    var end_ponit_lat    = Path_Array_3[Path_Array_3.length - 1].k;
+                    var end_ponit_lng    = Path_Array_3[Path_Array_3.length - 1].A;
+
+                    draw_polyline(Path_Array_3);
+
+                    for(var i = 0; i < Path_Array_3.length; i++) {
+                        Set_marker(Path_Array_3[i].k, Path_Array_3[i].A,way_point);
+                    }
+
+                    Set_marker(start_point_lat, start_point_lng, start_icon);
+                    Set_marker(end_ponit_lat, end_ponit_lng, end_icon);
+                    marker.setMap(null);
+                });
+                
+            });//End ready function
+        </script>
+    </body>
+</html>
