@@ -99,7 +99,8 @@
             var longitude  = 25.079722717882092;
             var latitude   = 121.57182583739973; 
             var Path_Array = []; 
-            var car_image  = "car.png";
+            var car_image1  = "7.png";
+            var car_image2  = "car.png";
             var way_point  = "waypoint.png";
   
             var initialize = function () {
@@ -129,8 +130,8 @@
                     position: bandrich,                       //經緯度
                     title: "BandRich",                        //標記點Marker在mouseover時顯示的文字。
                     map: map,                                 //要顯示標記點Marker的地圖物件。
-                    icon: car_image,                         //指定要改的圖片                       
-                    animation: google.maps.Animation.DROP,     //讓Marker從天而降
+                    icon: car_image1,                         //指定要改的圖片                       
+                    animation: google.maps.Animation.DROP,    //讓Marker從天而降
                     rotation: 180
                 });
 
@@ -148,6 +149,14 @@
 
                     google.maps.event.addListener(marker, 'click', function() {
                         infowindow.open(map,marker);
+                    });
+
+                    google.maps.event.addListener(marker, 'mouseover', function() {                      
+                        marker.setIcon(car_image2);
+                    });
+
+                    google.maps.event.addListener(marker, 'mouseout', function() {
+                        marker.setIcon(car_image1);
                     });
 
             }//End initialize function
@@ -181,8 +190,6 @@
 
                 var start_point  = Path_Array[0];
                 var end_ponit    = Path_Array[Path_Array.length - 1];
-
-                
 
                 //畫路徑線
                 var google_polyline = new google.maps.Polyline({
