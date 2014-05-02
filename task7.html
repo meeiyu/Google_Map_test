@@ -144,6 +144,7 @@
                 //mouseup
                     google.maps.event.addListener(marker, 'mouseup', function() {
                         LatLng = marker.getPosition();
+                        console.log(LatLng);
                         console.log("Current position: Lat---------:" + LatLng.lat() + "----------Lng-------：" + LatLng.lng());
                     });
 
