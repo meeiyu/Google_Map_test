@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="BandRich Web Team">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <link rel="stylesheet" type="text/css" href="css/pure-min.css">
+        <title>Google Map sample page</title>
+    </head>
+        <style type="text/css">
+            html, body {
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                background-color: #454545;
+            }
+
+            #content {
+                width: 150px;
+                height: 80px;
+            }
+
+            #SearchLatLng {
+                width: 300px;
+                height: 40px;
+                color: #FFFFFF;
+            }
+
+            #map_container {
+                margin: 0 0 0 10px;
+                position: relative;
+                border-radius: 5px;
+                background-color: #FFFFFF;
+                height: 490px;
+                width: 730px;
+            }
+
+            #map_canvas {
+                position: absolute;
+                margin: 20px;
+                height: 450px;
+                width:690px;
+            }
+
+            #Circle_radius_meters,
+            #Circle_radius_mile {
+                color: #FFFFFF;
+            }
+
+            /**************************************************
+
+                Pure css style
+
+            ***************************************************/
+                .button-success,
+                .button-error,
+                .button-warning,
+                .button-secondary {
+                    color: white;
+                    border-radius: 4px;
+                    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+                }
+
+                .button-success {
+                    margin: 10px 10px 10px 10px; 
+                    background: rgb(28, 184, 65); /* this is a green */
+                }
+
+                .button-error {
+                    margin: 0 5px 10px 5px; 
+                    background: rgb(202, 60, 60); /* this is a maroon */
+                }
+
+
+            /*  div, span, li, ul, img, h1, h2, h3, h4 {
+                border: 1px solid #000000;
+            }*/
+            
+
+        </style>
+    <body>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3&sensor=false&libraries=geometry,drawing&language=en"></script>
+        <script src="js/vendor/jquery-1.11.0.min.js?v=2014041601"></script>
+
+            <div id="SearchLatLng"></div>
+            <div id="Search_address"></div>
+            <div id="Circle_radius_meters"></div>
+            <div id="Circle_radius_mile"></div>
+            <br>
+            <div id="map_container">
+                <div id="map_canvas"></div>
+            </div>
+            <button id="Circle" class="button-success pure-button">Circle</button>
+            <button id="Rectangle" class="button-success pure-button">Rectangle</button>
+        <script>
+            var map;
+            var marker;
+            var car_image  =  "car.png";
+            var way_point  =  "waypoint.png";
+            var start_icon =  "start_point.png";
+            var end_icon   =  "end_point.png";
+            
+            var loadMap = function () {
+                var bandrich   = new google.maps.LatLng(25.079783451049927, 121.57173866560674);
+
+                //設定地圖的參數
+                var mapOptions = {
+                    zoom: 17,                                 //初始放大倍數
+                    center: bandrich,                         //中心點所在位置
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, //正常2D道路模式
+                    //disableDefaultUI: true                  //停用所有控制項 
+                };
+
+                //在指定DOM元素中嵌入地圖
+                map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+
+            }//End loadMap function
+
+            var Calculate_distance_mile = function (current_radius_meter) {
+                var current_radius_mile = current_radius_meter * 0.000621371192;
+                return current_radius_mile;
+            }//End Calculate_distance function
+
+ 
+            $(document).ready(function() { 
+                
+                loadMap();
+
+                $(document).on( "click", "#Circle", function() {         
+                    var current_center_position = map.getCenter();                                                                 //抓到目前地圖中心點的經緯度
+                    
+                    $("#Circle").css("display","none");
+                    $("#Rectangle").css("display","none");
+
+                    var center_lat_lng = new google.maps.LatLng(current_center_position.lat(), current_center_position.lng());     //取出抓到的經緯度，並塞入new出來的值
+                    
+                    var populationOptions = new google.maps.Circle({
+                        center: center_lat_lng,
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#FF0000',
+                        fillOpacity: 0.35,
+                        radius: 200,                 //圓形的半徑 (in meters).
+                        editable: true,              //圖形可否做修改
+                        draggable: true              //圖型可否拖行
+                    });                       
+
+                    marker = new google.maps.Marker({
+                        draggable: true,                          //讓marker可以拖拉  
+                        position: center_lat_lng,                 //經緯度
+                        map: map,                                 //要顯示標記點Marker的地圖物件。                 
+                        rotation: 180
+                    });
+
+                    //Events當半徑距離被改變時的
+                    google.maps.event.addListener(populationOptions, 'radius_changed', function() {
+                        var current_radius_meter = populationOptions.getRadius();
+                        var current_radius_mile = Calculate_distance_mile(current_radius_meter);
+                        $("#Circle_radius_mile").html(" radius: " + current_radius_mile.toFixed(2) + "  Miles");
+                        $("#Circle_radius_meters").html(" radius: " + current_radius_meter.toFixed(2) + "  meters");
+                    });
+
+                    populationOptions.setMap(map);
+                });
+
+
+                $(document).on( "click", "#Rectangle", function() {
+                    var current_center_position = map.getCenter();                                                                 //抓到目前地圖中心點的經緯度
+                    console.log("current_center_position:" + current_center_position);
+
+                    $("#Circle").css("display","none");
+                    $("#Rectangle").css("display","none");
+
+                    //計算左上角的經緯度
+                    var left_corner_lat = current_center_position.lat() + 0.001;
+                    var left_corner_lng = current_center_position.lng() - 0.001;
+
+                    //計算右下角的經緯度
+                    var right_corner_lat = current_center_position.lat() - 0.001;
+                    var right_corner_lng = current_center_position.lng() + 0.001;
+
+                    // [START region_rectangle]
+                    var bounds = new google.maps.LatLngBounds(
+                        new google.maps.LatLng(left_corner_lat, left_corner_lng),              //左上角經緯度
+                        new google.maps.LatLng(right_corner_lat, right_corner_lng)             //右下角經緯度
+                    );
+
+                    // Define a rectangle and set its editable property to true.
+                    var rectangle = new google.maps.Rectangle({
+                        bounds: bounds,                        
+                        strokeColor: "#FF0000",      //外框範圍的顏色
+                        strokeOpacity: 0.8,          //外框的不透明度
+                        strokeWeight: 2,             //外框線段的粗細
+                        fillColor: "#ffaf50",        //填滿範圍的顏色
+                        fillOpacity: 0.35,           //填滿範圍的不透明度
+                        editable: true,              //圖形可否做修改
+                        draggable: true,             //圖型可否拖行
+                    });
+
+                    marker = new google.maps.Marker({
+                        draggable: true,                          //讓marker可以拖拉  
+                        position: current_center_position,        //經緯度
+                        map: map,                                 //要顯示標記點Marker的地圖物件。                 
+                        rotation: 180
+                    });
+
+                    //Events當邊界的經緯度座標被改變時的
+                    google.maps.event.addListener(rectangle, 'bounds_changed', function() {
+                        var sw = rectangle.getBounds().getSouthWest();
+                        var ne = rectangle.getBounds().getNorthEast();
+                        var se = new google.maps.LatLng(sw.lat(), ne.lng());
+                        var nw = new google.maps.LatLng(ne.lat(), sw.lng());
+
+                        console.log("sw:" + sw);
+                        console.log("ne:" + ne);
+                        console.log("se:" + se);
+                        console.log("nw:" + nw);
+
+                        //取得兩點之間的距離
+                        var rectangle_width  = google.maps.geometry.spherical.computeDistanceBetween(nw, ne);
+                        var rectangle_height = google.maps.geometry.spherical.computeDistanceBetween(ne, se);
+                        
+                        $("#Circle_radius_mile").html("Size: " + Calculate_distance_mile(rectangle_width).toFixed(2) + " x " + Calculate_distance_mile(rectangle_height).toFixed(2) + "  Miles");
+
+                    });
+
+
+                    rectangle.setMap(map);
+                    // [END region_rectangle]
+
+                });
+                
+            });//End ready function
+        </script>
+    </body>
+</html>
