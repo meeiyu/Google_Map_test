@@ -21,12 +21,6 @@
                 height: 80px;
             }
 
-            #SearchLatLng {
-                width: 300px;
-                height: 40px;
-                color: #FFFFFF;
-            }
-
             #map_container {
                 margin: 0 0 0 10px;
                 position: relative;
@@ -44,8 +38,10 @@
             }
 
             #Circle_radius_meters,
-            #Circle_radius_mile {
+            #Circle_radius_mile,
+            #center_lanlng {
                 color: #FFFFFF;
+                margin: 10px;
             }
 
             /**************************************************
@@ -82,11 +78,9 @@
     <body>
         <script src="https://maps.googleapis.com/maps/api/js?v=3&sensor=false&libraries=geometry,drawing&language=en"></script>
         <script src="js/vendor/jquery-1.11.0.min.js?v=2014041601"></script>
-
-            <div id="SearchLatLng"></div>
-            <div id="Search_address"></div>
             <div id="Circle_radius_meters"></div>
             <div id="Circle_radius_mile"></div>
+            <div id="center_lanlng">center :</div>
             <br>
             <div id="map_container">
                 <div id="map_canvas"></div>
@@ -115,6 +109,8 @@
                 //在指定DOM元素中嵌入地圖
                 map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
+                //設定一個infoWindow
+                infoWindow = new google.maps.InfoWindow();
 
             }//End loadMap function
 
@@ -161,14 +157,36 @@
                         var current_radius_mile = Calculate_distance_mile(current_radius_meter);
                         $("#Circle_radius_mile").html(" radius: " + current_radius_mile.toFixed(2) + "  Miles");
                         $("#Circle_radius_meters").html(" radius: " + current_radius_meter.toFixed(2) + "  meters");
+
+                    });
+
+                    //Events當圓被拖動的時候
+                    google.maps.event.addListener(populationOptions, 'drag', function() {
+                        var center_lanlng =  populationOptions.getCenter();
+                        marker.setMap(null);
+                        console.log("drag!!!!!!!");
+
+                        $("#center_lanlng").html("center: " + "(" + center_lanlng.lat() + "," + center_lanlng.lng() + ")" );
+
+                        marker = new google.maps.Marker({
+                            position: populationOptions.getCenter(),  //經緯度
+                            map: map,                                 //要顯示標記點Marker的地圖物件。                 
+                            rotation: 180
+                        });
+
                     });
 
                     populationOptions.setMap(map);
+                    
+                    $("#Circle_radius_mile").html(" radius: " + Calculate_distance_mile(populationOptions.getRadius()).toFixed(2) + "  Miles");
+                    $("#Circle_radius_meters").html(" radius: " + populationOptions.getRadius().toFixed(2) + "  meters");
+                    $("#center_lanlng").html("center: " + "(" + center_lat_lng.lat() + "," + center_lat_lng.lng() + ")" );
                 });
 
 
                 $(document).on( "click", "#Rectangle", function() {
                     var current_center_position = map.getCenter();                                                                 //抓到目前地圖中心點的經緯度
+
                     console.log("current_center_position:" + current_center_position);
 
                     $("#Circle").css("display","none");
@@ -182,11 +200,19 @@
                     var right_corner_lat = current_center_position.lat() - 0.001;
                     var right_corner_lng = current_center_position.lng() + 0.001;
 
+                    console.log(left_corner_lat , left_corner_lng);
+
+                    console.log(right_corner_lat, right_corner_lng);
+
                     // [START region_rectangle]
                     var bounds = new google.maps.LatLngBounds(
-                        new google.maps.LatLng(left_corner_lat, left_corner_lng),              //左上角經緯度
-                        new google.maps.LatLng(right_corner_lat, right_corner_lng)             //右下角經緯度
+                        new google.maps.LatLng(left_corner_lat, left_corner_lng),              //左上角(nw)經緯度
+                        new google.maps.LatLng(right_corner_lat, right_corner_lng)             //右下角(se)經緯度
+
                     );
+
+                    console.log(bounds);
+
 
                     // Define a rectangle and set its editable property to true.
                     var rectangle = new google.maps.Rectangle({
@@ -200,11 +226,23 @@
                         draggable: true,             //圖型可否拖行
                     });
 
+
+                    var Left_Bottom_Ponit  = rectangle.getBounds().getSouthWest();
+                    var Right_Top_Point    = rectangle.getBounds().getNorthEast();
+                    var Right_Bottom_Ponit = new google.maps.LatLng(Left_Bottom_Ponit.lat(), Right_Top_Point.lng());
+                    var Left_Top_Point     = new google.maps.LatLng(Right_Top_Point.lat(), Left_Bottom_Ponit.lng());
+
+                    $("#Circle_radius_mile").html("sw: " + "(" + Left_Bottom_Ponit.lat() + "," + Left_Bottom_Ponit.lng() + ")<br>"
+                                                + "ne: " + "(" + Right_Top_Point.lat() + "," + Right_Top_Point.lng() + ")<br>"
+                                                + "se: " + "(" + Right_Bottom_Ponit.lat() + "," + Right_Bottom_Ponit.lng() + ")<br>"
+                                                + "nw: " + "(" + Left_Top_Point.lat() + "," + Left_Top_Point.lng() + ")<br>");
+
+
+
                     marker = new google.maps.Marker({
                         draggable: true,                          //讓marker可以拖拉  
                         position: current_center_position,        //經緯度
-                        map: map,                                 //要顯示標記點Marker的地圖物件。                 
-                        rotation: 180
+                        map: map                                  //要顯示標記點Marker的地圖物件。                 
                     });
 
                     //Events當邊界的經緯度座標被改變時的
@@ -213,6 +251,7 @@
                         var ne = rectangle.getBounds().getNorthEast();
                         var se = new google.maps.LatLng(sw.lat(), ne.lng());
                         var nw = new google.maps.LatLng(ne.lat(), sw.lng());
+
 
                         console.log("sw:" + sw);
                         console.log("ne:" + ne);
@@ -225,10 +264,35 @@
                         
                         $("#Circle_radius_mile").html("Size: " + Calculate_distance_mile(rectangle_width).toFixed(2) + " x " + Calculate_distance_mile(rectangle_height).toFixed(2) + "  Miles");
 
+                        $("#Circle_radius_mile").html("nw: " + "(" + nw.lat() + "," + nw.lng() + ")<br>"
+                                                    + "ne: " + "(" + ne.lat() + "," + ne.lng() + ")<br>"
+                                                    + "se: " + "(" + se.lat() + "," + se.lng() + ")<br>"
+                                                    + "sw: " + "(" + sw.lat() + "," + sw.lng() + ")<br>");
+
+
+                    });
+
+                    //Events當矩形被拖動的時候
+                    google.maps.event.addListener(rectangle, 'drag', function() {
+                        marker.setMap(null);
+                        console.log("drag!!!!!!!");
+
+                        var center_lanlng =  rectangle.getBounds().getCenter();     //矩形取得中心點的方法
+
+
+                        $("#center_lanlng").html("center: " + "(" + center_lanlng.lat() + "," + center_lanlng.lng() + ")" );
+
+                        marker = new google.maps.Marker({
+                            position: rectangle.getBounds().getCenter(),        //經緯度
+                            map: map                                            //要顯示標記點Marker的地圖物件。                 
+                        });
+
                     });
 
 
                     rectangle.setMap(map);
+
+                    $("#center_lanlng").html("center: " + "(" + current_center_position.lat() + "," + current_center_position.lng() + ")" );
                     // [END region_rectangle]
 
                 });
