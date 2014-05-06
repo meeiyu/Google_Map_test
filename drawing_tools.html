@@ -192,27 +192,20 @@
                     $("#Circle").css("display","none");
                     $("#Rectangle").css("display","none");
 
-                    //計算左上角的經緯度
-                    var left_corner_lat = current_center_position.lat() + 0.001;
-                    var left_corner_lng = current_center_position.lng() - 0.001;
 
-                    //計算右下角的經緯度
-                    var right_corner_lat = current_center_position.lat() - 0.001;
-                    var right_corner_lng = current_center_position.lng() + 0.001;
+                    //計算要給予的左下(sw)座標-從圓心向左下延伸
+                    var LBP_lat = current_center_position.lat() - 0.001;
+                    var LBP_lng = current_center_position.lng() - 0.001;
 
-                    console.log(left_corner_lat , left_corner_lng);
-
-                    console.log(right_corner_lat, right_corner_lng);
+                    //計算要給予的右上(ne)座標-從圓心向右上延伸
+                    var RTP_lat = current_center_position.lat() + 0.001;
+                    var RTP_lng = current_center_position.lng() + 0.001;
 
                     // [START region_rectangle]
                     var bounds = new google.maps.LatLngBounds(
-                        new google.maps.LatLng(left_corner_lat, left_corner_lng),              //左上角(nw)經緯度
-                        new google.maps.LatLng(right_corner_lat, right_corner_lng)             //右下角(se)經緯度
-
+                        new google.maps.LatLng(LBP_lat, LBP_lng),         //左下(sw)座標
+                        new google.maps.LatLng(RTP_lat, RTP_lng)          //右上(ne)座標
                     );
-
-                    console.log(bounds);
-
 
                     // Define a rectangle and set its editable property to true.
                     var rectangle = new google.maps.Rectangle({
@@ -231,6 +224,8 @@
                     var Right_Top_Point    = rectangle.getBounds().getNorthEast();
                     var Right_Bottom_Ponit = new google.maps.LatLng(Left_Bottom_Ponit.lat(), Right_Top_Point.lng());
                     var Left_Top_Point     = new google.maps.LatLng(Right_Top_Point.lat(), Left_Bottom_Ponit.lng());
+
+
 
                     $("#Circle_radius_mile").html("sw: " + "(" + Left_Bottom_Ponit.lat() + "," + Left_Bottom_Ponit.lng() + ")<br>"
                                                 + "ne: " + "(" + Right_Top_Point.lat() + "," + Right_Top_Point.lng() + ")<br>"
@@ -251,7 +246,6 @@
                         var ne = rectangle.getBounds().getNorthEast();
                         var se = new google.maps.LatLng(sw.lat(), ne.lng());
                         var nw = new google.maps.LatLng(ne.lat(), sw.lng());
-
 
                         console.log("sw:" + sw);
                         console.log("ne:" + ne);
