@@ -120,6 +120,13 @@
             }//End Calculate_distance function
 
  
+            var Set_marker = function (latlng){
+                marker = new google.maps.Marker({  
+                    position: latlng,                  //經緯度
+                    map: map                           //要顯示標記點Marker的地圖物件。              
+                });
+            }//End Set_marker function.
+
             $(document).ready(function() { 
                 
                 loadMap();
@@ -144,12 +151,7 @@
                         draggable: true              //圖型可否拖行
                     });                       
 
-                    marker = new google.maps.Marker({
-                        draggable: true,                          //讓marker可以拖拉  
-                        position: center_lat_lng,                 //經緯度
-                        map: map,                                 //要顯示標記點Marker的地圖物件。                 
-                        rotation: 180
-                    });
+                    Set_marker(center_lat_lng);
 
                     //Events當半徑距離被改變時的
                     google.maps.event.addListener(populationOptions, 'radius_changed', function() {
@@ -168,11 +170,7 @@
 
                         $("#center_lanlng").html("center: " + "(" + center_lanlng.lat() + "," + center_lanlng.lng() + ")" );
 
-                        marker = new google.maps.Marker({
-                            position: populationOptions.getCenter(),  //經緯度
-                            map: map,                                 //要顯示標記點Marker的地圖物件。                 
-                            rotation: 180
-                        });
+                        Set_marker(populationOptions.getCenter());
 
                     });
 
@@ -232,16 +230,14 @@
                                                 + "se: " + "(" + Right_Bottom_Ponit.lat() + "," + Right_Bottom_Ponit.lng() + ")<br>"
                                                 + "nw: " + "(" + Left_Top_Point.lat() + "," + Left_Top_Point.lng() + ")<br>");
 
+                    
 
-
-                    marker = new google.maps.Marker({
-                        draggable: true,                          //讓marker可以拖拉  
-                        position: current_center_position,        //經緯度
-                        map: map                                  //要顯示標記點Marker的地圖物件。                 
-                    });
+                    Set_marker(current_center_position);
 
                     //Events當邊界的經緯度座標被改變時的
                     google.maps.event.addListener(rectangle, 'bounds_changed', function() {
+                        marker.setMap(null);
+                        var center_lanlng =  rectangle.getBounds().getCenter();     //矩形取得中心點的方法
                         var sw = rectangle.getBounds().getSouthWest();
                         var ne = rectangle.getBounds().getNorthEast();
                         var se = new google.maps.LatLng(sw.lat(), ne.lng());
@@ -256,15 +252,16 @@
                         var rectangle_width  = google.maps.geometry.spherical.computeDistanceBetween(nw, ne);
                         var rectangle_height = google.maps.geometry.spherical.computeDistanceBetween(ne, se);
                         
-                        $("#Circle_radius_mile").html("Size: " + Calculate_distance_mile(rectangle_width).toFixed(2) + " x " + Calculate_distance_mile(rectangle_height).toFixed(2) + "  Miles");
+                        $("#Circle_radius_meters").html("Size: " + Calculate_distance_mile(rectangle_width).toFixed(2) + " x " + Calculate_distance_mile(rectangle_height).toFixed(2) + "  Miles");
 
                         $("#Circle_radius_mile").html("nw: " + "(" + nw.lat() + "," + nw.lng() + ")<br>"
                                                     + "ne: " + "(" + ne.lat() + "," + ne.lng() + ")<br>"
                                                     + "se: " + "(" + se.lat() + "," + se.lng() + ")<br>"
                                                     + "sw: " + "(" + sw.lat() + "," + sw.lng() + ")<br>");
+                        
+                        Set_marker(rectangle.getBounds().getCenter());
 
-
-                    });
+                        });
 
                     //Events當矩形被拖動的時候
                     google.maps.event.addListener(rectangle, 'drag', function() {
@@ -276,10 +273,7 @@
 
                         $("#center_lanlng").html("center: " + "(" + center_lanlng.lat() + "," + center_lanlng.lng() + ")" );
 
-                        marker = new google.maps.Marker({
-                            position: rectangle.getBounds().getCenter(),        //經緯度
-                            map: map                                            //要顯示標記點Marker的地圖物件。                 
-                        });
+                        Set_marker(rectangle.getBounds().getCenter());
 
                     });
 
